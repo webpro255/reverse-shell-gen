@@ -1,45 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" type="text/css" href="style.css" />
-    <title>Reverse Shell Generator</title>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Reverse Shell Generator</h1>
-      <form id="reverseShellForm">
-        <label for="os">OS:</label>
-        <select id="os">
-          <option value="Linux">Linux</option>
-          <option value="Windows">Windows</option>
-          <option value="Mac">Mac</option>
-        </select>
-        <br />
-        <label for="shellType">Shell Type:</label>
-        <select id="shellType">
-          <option value="bash">Bash</option>
-          <option value="Python">Python</option>
-          <option value="PowerShell">PowerShell</option>
-        </select>
-        <br />
-        <label for="ip">IP:</label>
-        <input type="text" id="ip" />
-        <br />
-        <label for="port">Port:</label>
-        <input type="number" min="1" max="65535" id="port" />
-        <br />
-        <label for="encoding">Encoding:</label>
-        <select id="encoding">
-          <option value="base64">Base64</option>
-          <option value="url">URL Encode</option>
-        </select>
-        <br />
-        <div id="preview"></div>
-        <button type="submit">Generate Reverse Shell</button>
-      </form>
-    </div>
-    <script src="script.js"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reverse Shell Generator</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Reverse Shell Generator</h1>
+    <form id="reverseShellForm">
+      <label for="os">OS:</label>
+      <select id="os">
+        <option value="Linux">Linux</option>
+        <option value="Windows">Windows</option>
+        <option value="Mac">Mac</option>
+      </select>
+
+      <label for="shellType">Shell Type:</label>
+      <select id="shellType">
+        <option value="bash">Bash</option>
+        <option value="Python">Python</option>
+        <option value="PowerShell">PowerShell</option>
+      </select>
+
+      <label for="ip">IP:</label>
+      <input type="text" id="ip" placeholder="192.168.1.10" required />
+
+      <label for="port">Port:</label>
+      <input type="number" id="port" placeholder="4444" required />
+
+      <label for="encoding">Encoding:</label>
+      <select id="encoding">
+        <option value="none">None</option>
+        <option value="base64">Base64</option>
+        <option value="url">URL Encode</option>
+      </select>
+
+      <button type="submit">Generate</button>
+    </form>
+
+    <h2>Generated Payload:</h2>
+    <div id="preview"></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
 </html>
